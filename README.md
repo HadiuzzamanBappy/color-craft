@@ -1,10 +1,14 @@
-# Project Name
+# Color Craft - Color Palette Generator
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Vite](https://img.shields.io/badge/vite-%5E4.0.0-brightgreen)](https://vitejs.dev/)
 [![React](https://img.shields.io/badge/react-%5E18.2.0-blue)](https://react.dev/)
 
 A modern web application built with Vite, React, and TypeScript, featuring a responsive UI powered by Tailwind CSS and shadcn/ui components.
+
+▶️ **[View the Live Vercel](https://color-craft-bro.vercel.app/)**  
+
+![Preview](/public/images/image.png)
 
 ## Features
 
