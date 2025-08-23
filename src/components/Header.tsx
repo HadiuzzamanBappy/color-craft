@@ -22,7 +22,7 @@ export function Header() {
             asChild
           >
             <a 
-              href="https://github.com" 
+              href="https://github.com/hadiuzzamanbappy/color-craft" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center"
@@ -30,15 +30,6 @@ export function Header() {
               <Github className="mr-2 h-4 w-4" />
               GitHub
             </a>
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-border hover:bg-surface-alt hover:border-primary transition-colors"
-          >
-            <Heart className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Support</span>
           </Button>
         </div>
 
