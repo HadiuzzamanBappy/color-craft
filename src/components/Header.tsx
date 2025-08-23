@@ -7,9 +7,6 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-surface/80 backdrop-blur-md">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg bg-gradient-primary">
-            <Palette className="h-6 w-6 text-primary-foreground" />
-          </div>
           <div>
             <h1 className="text-xl font-bold text-foreground">ColorCraft</h1>
             <p className="text-xs text-muted-foreground">Professional Color Generator</p>
