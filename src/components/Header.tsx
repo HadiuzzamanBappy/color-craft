@@ -22,13 +22,30 @@ export function Header() {
             asChild
           >
             <a 
-              href="https://github.com/hadiuzzamanbappy/color-craft" 
+              href="https://github.com/HadiuzzamanBappy/color-craft" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center"
             >
               <Github className="mr-2 h-4 w-4" />
               GitHub
+            </a>
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-border hover:bg-surface-alt hover:border-primary transition-colors"
+            asChild
+          >
+            <a 
+              href="https://www.picodevs.com/contact" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center"
+            >
+              <Heart className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Support</span>
             </a>
           </Button>
         </div>

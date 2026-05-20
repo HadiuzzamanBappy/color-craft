@@ -1,4 +1,3 @@
-
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,13 +18,21 @@ export function PreviewPanel({ primaryColor, secondaryColor = '#ffffff' }: Previ
   const isAACompliant = contrastRatio >= 4.5;
 
   return (
-  <Card className="p-6 bg-surface shadow-md">
+    <Card className="p-6 bg-surface shadow-md">
       <Accordion type="multiple" className="space-y-4">
         <AccordionItem value="live-preview" className="border-0">
-          <AccordionTrigger>Live Preview</AccordionTrigger>
+          <AccordionTrigger className="text-lg font-semibold py-2 hover:no-underline text-foreground">
+            <div className="flex items-center gap-2">
+              <span 
+                className="w-2.5 h-2.5 rounded-full" 
+                style={{ backgroundColor: primaryColor }} 
+              />
+              Live Preview
+            </div>
+          </AccordionTrigger>
           <AccordionContent>
             {/* Sample UI Components */}
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4">
               {/* Primary Button */}
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Primary Button</p>
@@ -115,10 +122,19 @@ export function PreviewPanel({ primaryColor, secondaryColor = '#ffffff' }: Previ
             </div>
           </AccordionContent>
         </AccordionItem>
+
         <AccordionItem value="accessibility-check" className="border-0">
-          <AccordionTrigger>Accessibility Check</AccordionTrigger>
+          <AccordionTrigger className="text-lg font-semibold py-2 hover:no-underline text-foreground">
+            <div className="flex items-center gap-2">
+              <span 
+                className="w-2.5 h-2.5 rounded-full" 
+                style={{ backgroundColor: secondaryColor }} 
+              />
+              Accessibility Check
+            </div>
+          </AccordionTrigger>
           <AccordionContent>
-            <div className="space-y-4 pt-0 border-t border-border">
+            <div className="space-y-4 pt-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 rounded-lg bg-surface-alt border border-border">
                   <div className="flex items-center space-x-3">
@@ -137,21 +153,21 @@ export function PreviewPanel({ primaryColor, secondaryColor = '#ffffff' }: Previ
                     <p className="text-lg font-bold text-foreground">
                       {contrastRatio.toFixed(2)}:1
                     </p>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 justify-end">
                       {isAAACompliant && (
-                        <Badge variant="outline" className="text-xs border-success text-success">
+                        <Badge variant="outline" className="text-xs border-success text-success animate-fade-in">
                           <CheckCircle className="mr-1 h-3 w-3" />
                           AAA
                         </Badge>
                       )}
                       {isAACompliant && (
-                        <Badge variant="outline" className="text-xs border-success text-success">
+                        <Badge variant="outline" className="text-xs border-success text-success animate-fade-in">
                           <CheckCircle className="mr-1 h-3 w-3" />
                           AA
                         </Badge>
                       )}
                       {!isAACompliant && (
-                        <Badge variant="outline" className="text-xs border-destructive text-destructive">
+                        <Badge variant="outline" className="text-xs border-destructive text-destructive animate-fade-in">
                           <AlertCircle className="mr-1 h-3 w-3" />
                           Fail
                         </Badge>

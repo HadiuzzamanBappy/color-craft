@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Copy, Download, Check } from 'lucide-react';
-import { generateShades, exportToCssVariables } from '@/lib/colorUtils';
+import { generateShades, exportToCssVariables, generateStepNumbers } from '@/lib/colorUtils';
 import { useToast } from '@/hooks/use-toast';
 
 interface ShadeGeneratorProps {
@@ -16,17 +16,8 @@ export function ShadeGenerator({ baseColor }: ShadeGeneratorProps) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const { toast } = useToast();
 
-  const shades = generateShades(baseColor, steps[0]);
-  const stepNumbers = shades.map((_, index) => {
-    const middle = Math.floor(shades.length / 2);
-    if (index < middle) {
-      return (middle - index) * 100;
-    } else if (index === middle) {
-      return 500;
-    } else {
-      return 500 + (index - middle) * 100;
-    }
-  });
+  const shades = generateShades(baseColor, (steps[0] + 1) / 2);
+  const stepNumbers = generateStepNumbers(shades.length);
 
   const copyToClipboard = async (color: string, index: number) => {
     try {

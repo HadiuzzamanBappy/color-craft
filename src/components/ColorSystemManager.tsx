@@ -19,13 +19,13 @@ import {
   Check,
   X
 } from 'lucide-react';
-import { ColorShade, ColorRole, COLOR_ROLE_LABELS } from '@/types/color';
+import { ColorShade, ColorRole, COLOR_ROLE_LABELS, NeutralShades } from '@/types/color';
 import { useToast } from '@/hooks/use-toast';
-import { generateShades, exportPalette } from '@/lib/colorUtils';
+import { generateShades, exportPalette, generateStepNumbers } from '@/lib/colorUtils';
 
 interface ColorSystemManagerProps {
   colors: ColorShade[];
-  neutrals: any;
+  neutrals: NeutralShades;
   onAddColor: (color: string, role: ColorRole) => void;
   onUpdateColor: (id: string, updates: Partial<ColorShade>) => void;
   onRemoveColor: (id: string) => void;
@@ -133,7 +133,7 @@ export function ColorSystemManager({
             </Badge>
           </div>
           <div className="flex items-center gap-2">
-            <Select onValueChange={(value) => handleExport(value as any)}>
+            <Select onValueChange={(value) => handleExport(value as 'css' | 'scss' | 'tailwind' | 'json')}>
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="Export" />
               </SelectTrigger>
@@ -295,8 +295,8 @@ export function ColorSystemManager({
               <div className="p-4">
                 <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
                   {color.shades.map((shade, index) => {
-                    const stepNumbers = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
-                    const stepNumber = stepNumbers[index] || (index + 1) * 100;
+                    const stepNumbers = generateStepNumbers(color.shades.length);
+                    const stepNumber = stepNumbers[index];
                     const shadeId = `${color.name}-${index}`;
                     
                     return (

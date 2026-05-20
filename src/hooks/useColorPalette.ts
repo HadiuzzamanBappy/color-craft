@@ -12,7 +12,7 @@ export function useColorPalette() {
         name: 'Primary',
         color: '#6366f1',
         role: 'primary',
-        shades: generateShades('#6366f1', 9),
+        shades: generateShades('#6366f1', 5),
         locked: false
       }
     ],
@@ -27,7 +27,7 @@ export function useColorPalette() {
       name: role.charAt(0).toUpperCase() + role.slice(1),
       color,
       role,
-      shades: generateShades(color, 9),
+      shades: generateShades(color, 5),
       locked: false
     };
 
@@ -48,7 +48,7 @@ export function useColorPalette() {
           ? { 
               ...color, 
               ...updates,
-              shades: updates.color ? generateShades(updates.color, 9) : color.shades
+              shades: updates.color ? generateShades(updates.color, 5) : color.shades
             }
           : color
       ),
@@ -96,7 +96,7 @@ export function useColorPalette() {
     }));
   }, []);
 
-  const regenerateShades = useCallback((id: string, steps: number = 9) => {
+  const regenerateShades = useCallback((id: string, steps: number = 5) => {
     setPalette(prev => ({
       ...prev,
       colors: prev.colors.map(color =>

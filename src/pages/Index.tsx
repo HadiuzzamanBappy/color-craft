@@ -24,40 +24,11 @@ const Index = () => {
   } = useColorPalette();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
       
-      {/* Hero Section */}
-      <section className="py-12 px-4 bg-gradient-surface border-b border-border">
-        <div className="container mx-auto text-center">
-          <div className="max-w-3xl mx-auto space-y-6">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground">
-              Professional
-              <span className="block bg-gradient-primary bg-clip-text text-transparent">
-                Color Generator
-              </span>
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Create stunning color palettes, generate perfect shades, and build accessible color systems 
-              for your next design project.
-            </p>
-            <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                ✨ Harmony Generation
-              </span>
-              <span className="flex items-center gap-1">
-                🎨 Accessibility Checker
-              </span>
-              <span className="flex items-center gap-1">
-                📱 Export Ready
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="flex-1 container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Sidebar - Controls */}
           <div className="lg:col-span-4 space-y-6">
@@ -112,7 +83,7 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="mt-16 py-8 px-4 border-t border-border bg-surface-alt">
+      <footer className="py-8 px-4 border-t border-border bg-surface-alt mt-auto">
         <div className="container mx-auto text-center">
           <p className="text-sm text-muted-foreground">
             Built with ❤️ for designers and developers. 

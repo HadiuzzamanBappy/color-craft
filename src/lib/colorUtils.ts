@@ -1,3 +1,5 @@
+import { ColorShade, NeutralShades, ColorRole } from '@/types/color';
+
 // Color utility functions for the Color Shade Generator
 
 export interface HSL {
@@ -226,20 +228,30 @@ export interface HSL {
   
   // Generate step numbers for shades (50, 100, 200, etc.)
   export function generateStepNumbers(count: number): number[] {
+    if (count === 9) {
+      return [100, 200, 300, 400, 500, 600, 700, 800, 900];
+    }
+    if (count === 10) {
+      return [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+    }
+    
+    // Generic monotonic step numbering
     const middle = Math.floor(count / 2);
     return Array.from({ length: count }, (_, index) => {
       if (index < middle) {
-        return (middle - index) * 100;
+        const step = 400 / middle;
+        return Math.round((index + 1) * step);
       } else if (index === middle) {
         return 500;
       } else {
-        return 500 + (index - middle) * 100;
+        const step = 400 / (count - middle - 1 || 1);
+        return Math.round(500 + (index - middle) * step);
       }
     });
   }
   
   // Export full palette to different formats
-  export function exportPalette(colors: any[], neutrals: any, format: 'css' | 'scss' | 'tailwind' | 'json' = 'css'): string {
+  export function exportPalette(colors: ColorShade[], neutrals: NeutralShades, format: 'css' | 'scss' | 'tailwind' | 'json' = 'css'): string {
     switch (format) {
       case 'css':
         return exportToCss(colors, neutrals);
@@ -254,7 +266,7 @@ export interface HSL {
     }
   }
   
-  function exportToCss(colors: any[], neutrals: any): string {
+  function exportToCss(colors: ColorShade[], neutrals: NeutralShades): string {
     let css = ':root {\n';
     
     // Brand colors
@@ -267,7 +279,7 @@ export interface HSL {
     });
     
     // Neutral colors
-    Object.entries(neutrals).forEach(([type, shades]: [string, any]) => {
+    Object.entries(neutrals).forEach(([type, shades]) => {
       shades.forEach((shade: string, index: number) => {
         const stepNumbers = generateStepNumbers(shades.length);
         css += `  --${type}-${stepNumbers[index]}: ${shade};\n`;
@@ -278,7 +290,7 @@ export interface HSL {
     return css;
   }
   
-  function exportToScss(colors: any[], neutrals: any): string {
+  function exportToScss(colors: ColorShade[], neutrals: NeutralShades): string {
     let scss = '// Color Variables\n\n';
     
     colors.forEach(color => {
@@ -292,7 +304,7 @@ export interface HSL {
     });
     
     scss += '// Neutral Colors\n';
-    Object.entries(neutrals).forEach(([type, shades]: [string, any]) => {
+    Object.entries(neutrals).forEach(([type, shades]) => {
       scss += `// ${type.charAt(0).toUpperCase() + type.slice(1)} Colors\n`;
       shades.forEach((shade: string, index: number) => {
         const stepNumbers = generateStepNumbers(shades.length);
@@ -304,12 +316,12 @@ export interface HSL {
     return scss;
   }
   
-  function exportToTailwind(colors: any[], neutrals: any): string {
-    const config: any = { colors: {} };
+  function exportToTailwind(colors: ColorShade[], neutrals: NeutralShades): string {
+    const config: { colors: Record<string, Record<string, string>> } = { colors: {} };
     
     colors.forEach(color => {
       const name = color.name.toLowerCase().replace(/\s+/g, '-');
-      const colorObj: any = {};
+      const colorObj: Record<string, string> = {};
       color.shades.forEach((shade: string, index: number) => {
         const stepNumbers = generateStepNumbers(color.shades.length);
         colorObj[stepNumbers[index]] = shade;
@@ -317,8 +329,8 @@ export interface HSL {
       config.colors[name] = colorObj;
     });
     
-    Object.entries(neutrals).forEach(([type, shades]: [string, any]) => {
-      const colorObj: any = {};
+    Object.entries(neutrals).forEach(([type, shades]) => {
+      const colorObj: Record<string, string> = {};
       shades.forEach((shade: string, index: number) => {
         const stepNumbers = generateStepNumbers(shades.length);
         colorObj[stepNumbers[index]] = shade;
@@ -329,9 +341,9 @@ export interface HSL {
     return JSON.stringify(config, null, 2);
   }
   
-  function exportToJson(colors: any[], neutrals: any): string {
+  function exportToJson(colors: ColorShade[], neutrals: NeutralShades): string {
     const palette = {
-      colors: {},
+      colors: {} as Record<string, { name: string; role: ColorRole; base: string; shades: Record<string, string> }>,
       neutrals: neutrals,
       metadata: {
         generatedAt: new Date().toISOString(),
@@ -341,11 +353,11 @@ export interface HSL {
     
     colors.forEach(color => {
       const name = color.name.toLowerCase().replace(/\s+/g, '-');
-      const colorObj: any = {
+      const colorObj = {
         name: color.name,
         role: color.role,
         base: color.color,
-        shades: {}
+        shades: {} as Record<string, string>
       };
       
       color.shades.forEach((shade: string, index: number) => {
@@ -353,7 +365,7 @@ export interface HSL {
         colorObj.shades[stepNumbers[index]] = shade;
       });
       
-      (palette.colors as any)[name] = colorObj;
+      palette.colors[name] = colorObj;
     });
     
     return JSON.stringify(palette, null, 2);
