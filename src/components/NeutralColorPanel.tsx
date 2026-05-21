@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,16 +13,30 @@ interface NeutralColorPanelProps {
     black: string[];
     gray: string[];
   };
+  onUpdateNeutrals: (whiteBase: string, blackBase: string, grayBase: string) => void;
 }
 
-export function NeutralColorPanel({ neutrals }: NeutralColorPanelProps) {
+export function NeutralColorPanel({ neutrals, onUpdateNeutrals }: NeutralColorPanelProps) {
   const [copiedShade, setCopiedShade] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Base inputs for neutrals
-  const [whiteBase, setWhiteBase] = useState<string>('#ffffff');
-  const [blackBase, setBlackBase] = useState<string>('#000000');
-  const [grayBase, setGrayBase] = useState<string>('#808080');
+  // Base inputs for neutrals with persistence
+  const [whiteBase, setWhiteBase] = useState<string>(() => {
+    return localStorage.getItem('color-craft-neutral-white') || '#ffffff';
+  });
+  const [blackBase, setBlackBase] = useState<string>(() => {
+    return localStorage.getItem('color-craft-neutral-black') || '#000000';
+  });
+  const [grayBase, setGrayBase] = useState<string>(() => {
+    return localStorage.getItem('color-craft-neutral-gray') || '#808080';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('color-craft-neutral-white', whiteBase);
+    localStorage.setItem('color-craft-neutral-black', blackBase);
+    localStorage.setItem('color-craft-neutral-gray', grayBase);
+    onUpdateNeutrals(whiteBase, blackBase, grayBase);
+  }, [whiteBase, blackBase, grayBase, onUpdateNeutrals]);
 
   const alphaPercents = [8, 16, 24, 32, 40, 48, 56, 64, 72, 80];
   const toRgba = (hex: string, alpha: number) => {

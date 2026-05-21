@@ -8,6 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import { 
   Plus, 
   Trash2, 
   Lock, 
@@ -22,6 +29,8 @@ import {
 import { ColorShade, ColorRole, COLOR_ROLE_LABELS, NeutralShades } from '@/types/color';
 import { useToast } from '@/hooks/use-toast';
 import { generateShades, exportPalette, generateStepNumbers } from '@/lib/colorUtils';
+
+type ExportFormat = 'css' | 'scss' | 'tailwind-hex' | 'tailwind-var' | 'tailwind-v4' | 'json';
 
 interface ColorSystemManagerProps {
   colors: ColorShade[];
@@ -51,6 +60,9 @@ export function ColorSystemManager({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [copiedShade, setCopiedShade] = useState<string | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<ExportFormat>('css');
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
   const handleAddColor = () => {
@@ -81,11 +93,26 @@ export function ColorSystemManager({
     }
   };
 
-  const handleExport = (format: 'css' | 'scss' | 'tailwind' | 'json') => {
-    const content = exportPalette(colors, neutrals, format);
-    const mimeType = format === 'json' ? 'application/json' : 'text/plain';
-    const fileName = `color-system.${format === 'tailwind' ? 'json' : format}`;
+  const handleDownloadCode = () => {
+    const content = exportPalette(colors, neutrals, exportFormat);
+    let extension = 'css';
+    let mimeType = 'text/css';
     
+    if (exportFormat === 'scss') {
+      extension = 'scss';
+      mimeType = 'text/x-scss';
+    } else if (exportFormat === 'tailwind-hex' || exportFormat === 'tailwind-var') {
+      extension = 'json';
+      mimeType = 'application/json';
+    } else if (exportFormat === 'tailwind-v4') {
+      extension = 'css';
+      mimeType = 'text/css';
+    } else if (exportFormat === 'json') {
+      extension = 'json';
+      mimeType = 'application/json';
+    }
+    
+    const fileName = `color-system.${exportFormat === 'tailwind-hex' || exportFormat === 'tailwind-var' ? 'tailwind.json' : exportFormat === 'tailwind-v4' ? 'tailwind-v4.css' : extension}`;
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -97,9 +124,28 @@ export function ColorSystemManager({
     URL.revokeObjectURL(url);
 
     toast({
-      title: "Export complete!",
-      description: `Color system exported as ${format.toUpperCase()}`,
+      title: "File downloaded!",
+      description: `Saved color system variables to ${fileName}`,
     });
+  };
+
+  const handleCopyCode = async () => {
+    try {
+      const content = exportPalette(colors, neutrals, exportFormat);
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      toast({
+        title: "Code copied!",
+        description: "Variables copied to clipboard",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Copy failed",
+        description: "Unable to copy variables to clipboard",
+        variant: "destructive",
+      });
+    }
   };
 
   const startEditing = (color: ColorShade) => {
@@ -133,17 +179,15 @@ export function ColorSystemManager({
             </Badge>
           </div>
           <div className="flex items-center gap-2">
-            <Select onValueChange={(value) => handleExport(value as 'css' | 'scss' | 'tailwind' | 'json')}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Export" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="css">CSS</SelectItem>
-                <SelectItem value="scss">SCSS</SelectItem>
-                <SelectItem value="tailwind">Tailwind</SelectItem>
-                <SelectItem value="json">JSON</SelectItem>
-              </SelectContent>
-            </Select>
+            <Button
+              onClick={() => setExportOpen(true)}
+              variant="outline"
+              size="sm"
+              className="border-border hover:bg-surface-alt flex items-center gap-1.5"
+            >
+              <Download className="h-4 w-4" />
+              Export Code
+            </Button>
           </div>
         </div>
 
@@ -350,6 +394,112 @@ export function ColorSystemManager({
           </div>
         )}
       </div>
+
+      {/* Export Developer Code Dialog */}
+      <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+        <DialogContent className="max-w-3xl w-[90vw] max-h-[85vh] flex flex-col bg-surface border-border p-6 shadow-2xl overflow-hidden rounded-xl">
+          <DialogHeader className="shrink-0 pb-2">
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold text-foreground">
+              <Download className="h-5 w-5 text-primary" />
+              Export Developer Code
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-sm">
+              Use these premium export configurations to integrate your custom generated color palette and neutrals straight into your codebase.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Formats Layout */}
+          <div className="flex flex-col md:flex-row gap-4 my-3 overflow-hidden flex-1 min-h-[300px]">
+            {/* Format Selector Menu */}
+            <div className="flex md:flex-col gap-1.5 w-full md:w-52 overflow-x-auto md:overflow-x-visible shrink-0 pb-2 md:pb-0 scrollbar-none">
+              {[
+                { id: 'css', label: 'CSS Variables', desc: 'Plain CSS custom properties' },
+                { id: 'scss', label: 'SCSS Variables', desc: 'Variables for Sass styling' },
+                { id: 'tailwind-hex', label: 'Tailwind v3 (Hex)', desc: 'Pure hex config extension' },
+                { id: 'tailwind-var', label: 'Tailwind v3 (Var)', desc: 'Dynamic CSS variables mapping' },
+                { id: 'tailwind-v4', label: 'Tailwind v4 (@theme)', desc: 'Modern CSS-first theme config' },
+                { id: 'json', label: 'JSON Schema', desc: 'Raw palette configurations' },
+              ].map((fmt) => (
+                <button
+                  key={fmt.id}
+                  onClick={() => {
+                    setExportFormat(fmt.id as ExportFormat);
+                    setCopied(false);
+                  }}
+                  className={`text-left px-3.5 py-3 rounded-lg border transition-all duration-200 flex flex-col gap-0.5 shrink-0 md:shrink ${
+                    exportFormat === fmt.id
+                      ? 'bg-primary/10 border-primary text-primary font-medium shadow-sm'
+                      : 'bg-surface-alt/50 border-border text-foreground hover:bg-surface-alt hover:border-muted-foreground/35'
+                  }`}
+                >
+                  <span className="text-xs font-semibold">{fmt.label}</span>
+                  <span className="text-[10px] text-muted-foreground line-clamp-1">{fmt.desc}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Code Block & Guidelines */}
+            <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-zinc-950 rounded-xl border border-border overflow-hidden relative group">
+              {/* Copy and Download Buttons */}
+              <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-zinc-800 shrink-0 text-white">
+                <span className="text-[10px] font-mono uppercase text-zinc-400 font-semibold tracking-wider">
+                  {exportFormat.replace('-', ' ')}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    onClick={handleCopyCode}
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2.5 text-xs text-zinc-300 hover:text-white hover:bg-white/10"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="mr-1.5 h-3.5 w-3.5 text-success" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-1.5 h-3.5 w-3.5" />
+                        Copy Code
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={handleDownloadCode}
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2.5 text-xs text-zinc-300 hover:text-white hover:bg-white/10"
+                  >
+                    <Download className="mr-1.5 h-3.5 w-3.5" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+
+              {/* Code Scrollable */}
+              <pre className="flex-1 overflow-auto p-4 text-xs font-mono text-zinc-100 bg-zinc-950 select-text leading-relaxed select-all">
+                <code>{exportPalette(colors, neutrals, exportFormat)}</code>
+              </pre>
+            </div>
+          </div>
+
+          {/* Guidelines / Tips */}
+          <div className="p-4 bg-surface-alt rounded-lg border border-border text-xs text-muted-foreground shrink-0 space-y-1">
+            <h5 className="font-semibold text-foreground flex items-center gap-1.5 text-xs">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              Integration Guide:
+            </h5>
+            <p className="pl-3 leading-relaxed text-muted-foreground">
+              {exportFormat === 'css' && "Paste this inside your global CSS file (like index.css or App.css) inside the :root selector. To use a color, write: color: var(--primary-500);"}
+              {exportFormat === 'scss' && "Save this inside a variables sheet (e.g. _colors.scss) and import it in your styles. Reference them with $name-step, e.g. color: $primary-500;"}
+              {exportFormat === 'tailwind-hex' && "Merge this extend block inside your tailwind.config.js under theme.extend.colors. This makes them instantly accessible as utility classes like bg-primary-500 or text-white-8."}
+              {exportFormat === 'tailwind-var' && "First, add the CSS variables snippet to your global CSS. Then merge this map under theme.extend.colors. This preserves live runtime changes while keeping standard utility class syntax!"}
+              {exportFormat === 'tailwind-v4' && "Tailwind CSS v4 uses a modern CSS-first configurations approach. Paste this block directly inside your main CSS file alongside @import 'tailwindcss';. Tailwind automatically converts them to utility classes!"}
+              {exportFormat === 'json' && "This matches standard semantic schemas and allows integrating your color system with generic token platforms, headless design pipelines, or custom builders."}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

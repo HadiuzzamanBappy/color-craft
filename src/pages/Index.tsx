@@ -6,6 +6,8 @@ import { HarmonyGenerator } from '@/components/HarmonyGenerator';
 import { PreviewPanel } from '@/components/PreviewPanel';
 import { ColorSystemManager } from '@/components/ColorSystemManager';
 import { NeutralColorPanel } from '@/components/NeutralColorPanel';
+import { ContrastMatrix } from '@/components/ContrastMatrix';
+import { ImagePaletteExtractor } from '@/components/ImagePaletteExtractor';
 import { useColorPalette } from '@/hooks/useColorPalette';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -20,7 +22,8 @@ const Index = () => {
     updateColorName,
     lockColor,
     regenerateShades,
-    updatePaletteName
+    updatePaletteName,
+    updateNeutrals
   } = useColorPalette();
 
   return (
@@ -45,11 +48,13 @@ const Index = () => {
           {/* Main Content Area */}
           <div className="lg:col-span-8 space-y-6">
             <Tabs defaultValue="generator" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6">
-                <TabsTrigger value="generator">Generator</TabsTrigger>
-                <TabsTrigger value="system">Color System</TabsTrigger>
-                <TabsTrigger value="neutrals">Neutrals</TabsTrigger>
-                <TabsTrigger value="harmony">Harmony</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-6 bg-muted/50 p-1.5 h-auto">
+                <TabsTrigger value="generator" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs font-semibold py-2">Generator</TabsTrigger>
+                <TabsTrigger value="system" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs font-semibold py-2">Color System</TabsTrigger>
+                <TabsTrigger value="neutrals" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs font-semibold py-2">Neutrals</TabsTrigger>
+                <TabsTrigger value="harmony" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs font-semibold py-2">Harmony</TabsTrigger>
+                <TabsTrigger value="contrast" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs font-semibold py-2">Contrast Matrix</TabsTrigger>
+                <TabsTrigger value="extractor" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs font-semibold py-2">Image Extractor</TabsTrigger>
               </TabsList>
               
               <TabsContent value="generator" className="space-y-6">
@@ -71,11 +76,22 @@ const Index = () => {
               </TabsContent>
               
               <TabsContent value="neutrals" className="space-y-6">
-                <NeutralColorPanel neutrals={palette.neutrals} />
+                <NeutralColorPanel 
+                  neutrals={palette.neutrals} 
+                  onUpdateNeutrals={updateNeutrals}
+                />
               </TabsContent>
               
               <TabsContent value="harmony" className="space-y-6">
                 <HarmonyGenerator baseColor={currentColor} />
+              </TabsContent>
+
+              <TabsContent value="contrast" className="space-y-6">
+                <ContrastMatrix colors={palette.colors} neutrals={palette.neutrals} />
+              </TabsContent>
+
+              <TabsContent value="extractor" className="space-y-6">
+                <ImagePaletteExtractor onAddColor={addColor} />
               </TabsContent>
             </Tabs>
           </div>

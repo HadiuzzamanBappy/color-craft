@@ -1,6 +1,7 @@
-import { Palette, Github, Heart } from 'lucide-react';
+import { Github, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './ThemeToggle';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 
 export function Header() {
   return (
@@ -14,40 +15,65 @@ export function Header() {
         </div>
 
         <div className="flex items-center space-x-2">
-          <ThemeToggle />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="hidden sm:flex hover:bg-surface-alt"
-            asChild
-          >
-            <a 
-              href="https://github.com/HadiuzzamanBappy/color-craft" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center"
-            >
-              <Github className="mr-2 h-4 w-4" />
-              GitHub
-            </a>
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-border hover:bg-surface-alt hover:border-primary transition-colors"
-            asChild
-          >
-            <a 
-              href="https://www.picodevs.com/contact" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center"
-            >
-              <Heart className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Support</span>
-            </a>
-          </Button>
+          <TooltipProvider>
+            {/* Theme Toggle */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <ThemeToggle />
+              </TooltipTrigger>
+              <TooltipContent className="bg-popover border border-border text-foreground font-medium text-xs rounded-md shadow-lg">
+                <p>Toggle light/dark mode</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* GitHub */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-xl border border-border bg-surface-alt/50 hover:bg-surface-alt hover:border-primary/50 text-muted-foreground hover:text-foreground transition-all duration-300 group shadow-sm hover:shadow-md hover:scale-105"
+                  asChild
+                >
+                  <a 
+                    href="https://github.com/HadiuzzamanBappy/color-craft" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    aria-label="GitHub Repository"
+                  >
+                    <Github className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
+                  </a>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-popover border border-border text-foreground font-medium text-xs rounded-md shadow-lg">
+                <p>GitHub Repository</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Support */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-xl border border-border bg-surface-alt/50 hover:bg-surface-alt hover:border-primary/50 text-muted-foreground hover:text-foreground transition-all duration-300 group shadow-sm hover:shadow-md hover:scale-105"
+                  asChild
+                >
+                  <a 
+                    href="https://www.picodevs.com/contact" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    aria-label="Get Support"
+                  >
+                    <Heart className="h-4 w-4 transition-all duration-300 group-hover:animate-pulse group-hover:text-red-500" />
+                  </a>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-popover border border-border text-foreground font-medium text-xs rounded-md shadow-lg">
+                <p>Support & Contact</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
       </div>

@@ -202,19 +202,15 @@ export interface HSL {
   
   // Generate neutral shades (white, black, gray)
   export function generateNeutralShades() {
+    const alphaPercents = [8, 16, 24, 32, 40, 48, 56, 64, 72, 80];
+    const toRgba = (hex: string, alpha: number) => {
+      const rgb = hexToRgb(hex);
+      return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+    };
     return {
-      white: [
-        '#ffffff', '#fefefe', '#fdfdfd', '#fcfcfc', '#fbfbfb',
-        '#fafafa', '#f9f9f9', '#f8f8f8', '#f7f7f7'
-      ],
-      black: [
-        '#000000', '#0a0a0a', '#141414', '#1e1e1e', '#282828',
-        '#323232', '#3c3c3c', '#464646', '#505050'
-      ],
-      gray: [
-        '#f8f9fa', '#e9ecef', '#dee2e6', '#ced4da', '#adb5bd',
-        '#6c757d', '#495057', '#343a40', '#212529'
-      ]
+      white: alphaPercents.map(p => toRgba('#ffffff', p / 100)),
+      black: alphaPercents.map(p => toRgba('#000000', p / 100)),
+      gray: generateShades('#808080', 5)
     };
   }
   
@@ -251,14 +247,23 @@ export interface HSL {
   }
   
   // Export full palette to different formats
-  export function exportPalette(colors: ColorShade[], neutrals: NeutralShades, format: 'css' | 'scss' | 'tailwind' | 'json' = 'css'): string {
+  export function exportPalette(
+    colors: ColorShade[], 
+    neutrals: NeutralShades, 
+    format: 'css' | 'scss' | 'tailwind' | 'tailwind-hex' | 'tailwind-var' | 'tailwind-v4' | 'json' = 'css'
+  ): string {
     switch (format) {
       case 'css':
         return exportToCss(colors, neutrals);
       case 'scss':
         return exportToScss(colors, neutrals);
       case 'tailwind':
+      case 'tailwind-hex':
         return exportToTailwind(colors, neutrals);
+      case 'tailwind-var':
+        return exportToTailwindVar(colors, neutrals);
+      case 'tailwind-v4':
+        return exportToTailwindV4(colors, neutrals);
       case 'json':
         return exportToJson(colors, neutrals);
       default:
@@ -280,9 +285,13 @@ export interface HSL {
     
     // Neutral colors
     Object.entries(neutrals).forEach(([type, shades]) => {
+      const isOpacityBase = type === 'white' || type === 'black';
+      const alphaPercents = [8, 16, 24, 32, 40, 48, 56, 64, 72, 80];
       shades.forEach((shade: string, index: number) => {
-        const stepNumbers = generateStepNumbers(shades.length);
-        css += `  --${type}-${stepNumbers[index]}: ${shade};\n`;
+        const stepName = (isOpacityBase && shades.length === 10)
+          ? alphaPercents[index]
+          : generateStepNumbers(shades.length)[index];
+        css += `  --${type}-${stepName}: ${shade};\n`;
       });
     });
     
@@ -306,9 +315,13 @@ export interface HSL {
     scss += '// Neutral Colors\n';
     Object.entries(neutrals).forEach(([type, shades]) => {
       scss += `// ${type.charAt(0).toUpperCase() + type.slice(1)} Colors\n`;
+      const isOpacityBase = type === 'white' || type === 'black';
+      const alphaPercents = [8, 16, 24, 32, 40, 48, 56, 64, 72, 80];
       shades.forEach((shade: string, index: number) => {
-        const stepNumbers = generateStepNumbers(shades.length);
-        scss += `$${type}-${stepNumbers[index]}: ${shade};\n`;
+        const stepName = (isOpacityBase && shades.length === 10)
+          ? alphaPercents[index]
+          : generateStepNumbers(shades.length)[index];
+        scss += `$${type}-${stepName}: ${shade};\n`;
       });
       scss += '\n';
     });
@@ -317,7 +330,9 @@ export interface HSL {
   }
   
   function exportToTailwind(colors: ColorShade[], neutrals: NeutralShades): string {
-    const config: { colors: Record<string, Record<string, string>> } = { colors: {} };
+    const config: { theme: { extend: { colors: Record<string, Record<string, string>> } } } = { 
+      theme: { extend: { colors: {} } } 
+    };
     
     colors.forEach(color => {
       const name = color.name.toLowerCase().replace(/\s+/g, '-');
@@ -326,19 +341,80 @@ export interface HSL {
         const stepNumbers = generateStepNumbers(color.shades.length);
         colorObj[stepNumbers[index]] = shade;
       });
-      config.colors[name] = colorObj;
+      config.theme.extend.colors[name] = colorObj;
     });
     
     Object.entries(neutrals).forEach(([type, shades]) => {
       const colorObj: Record<string, string> = {};
+      const isOpacityBase = type === 'white' || type === 'black';
+      const alphaPercents = [8, 16, 24, 32, 40, 48, 56, 64, 72, 80];
       shades.forEach((shade: string, index: number) => {
-        const stepNumbers = generateStepNumbers(shades.length);
-        colorObj[stepNumbers[index]] = shade;
+        const stepName = (isOpacityBase && shades.length === 10)
+          ? alphaPercents[index]
+          : generateStepNumbers(shades.length)[index];
+        colorObj[stepName] = shade;
       });
-      config.colors[type] = colorObj;
+      config.theme.extend.colors[type] = colorObj;
     });
     
     return JSON.stringify(config, null, 2);
+  }
+
+  function exportToTailwindVar(colors: ColorShade[], neutrals: NeutralShades): string {
+    const config: { theme: { extend: { colors: Record<string, Record<string, string>> } } } = { 
+      theme: { extend: { colors: {} } } 
+    };
+    
+    colors.forEach(color => {
+      const name = color.name.toLowerCase().replace(/\s+/g, '-');
+      const colorObj: Record<string, string> = {};
+      color.shades.forEach((_, index: number) => {
+        const stepNumbers = generateStepNumbers(color.shades.length);
+        colorObj[stepNumbers[index]] = `var(--${name}-${stepNumbers[index]})`;
+      });
+      config.theme.extend.colors[name] = colorObj;
+    });
+    
+    Object.entries(neutrals).forEach(([type, shades]) => {
+      const colorObj: Record<string, string> = {};
+      const isOpacityBase = type === 'white' || type === 'black';
+      const alphaPercents = [8, 16, 24, 32, 40, 48, 56, 64, 72, 80];
+      shades.forEach((_, index: number) => {
+        const stepName = (isOpacityBase && shades.length === 10)
+          ? alphaPercents[index]
+          : generateStepNumbers(shades.length)[index];
+        colorObj[stepName] = `var(--${type}-${stepName})`;
+      });
+      config.theme.extend.colors[type] = colorObj;
+    });
+    
+    return JSON.stringify(config, null, 2);
+  }
+
+  function exportToTailwindV4(colors: ColorShade[], neutrals: NeutralShades): string {
+    let css = '@theme {\n';
+    
+    colors.forEach(color => {
+      const name = color.name.toLowerCase().replace(/\s+/g, '-');
+      color.shades.forEach((shade: string, index: number) => {
+        const stepNumbers = generateStepNumbers(color.shades.length);
+        css += `  --color-${name}-${stepNumbers[index]}: ${shade};\n`;
+      });
+    });
+    
+    Object.entries(neutrals).forEach(([type, shades]) => {
+      const isOpacityBase = type === 'white' || type === 'black';
+      const alphaPercents = [8, 16, 24, 32, 40, 48, 56, 64, 72, 80];
+      shades.forEach((shade: string, index: number) => {
+        const stepName = (isOpacityBase && shades.length === 10)
+          ? alphaPercents[index]
+          : generateStepNumbers(shades.length)[index];
+        css += `  --color-${type}-${stepName}: ${shade};\n`;
+      });
+    });
+    
+    css += '}';
+    return css;
   }
   
   function exportToJson(colors: ColorShade[], neutrals: NeutralShades): string {
@@ -369,4 +445,78 @@ export interface HSL {
     });
     
     return JSON.stringify(palette, null, 2);
+  }
+
+  // Extract dominant colors from a downsampled pixel list using spatial grouping and HSL distancing
+  export function extractDominantColors(pixels: Uint8ClampedArray, count: number = 5): string[] {
+    const colorCounts: Record<string, number> = {};
+    
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+      const a = pixels[i + 3];
+      
+      // Skip transparent pixels
+      if (a < 125) continue;
+      
+      const isGray = Math.abs(r - g) < 15 && Math.abs(g - b) < 15 && Math.abs(r - b) < 15;
+      
+      // Convert to hex with light clustering
+      const roundedR = Math.round(r / 16) * 16;
+      const roundedG = Math.round(g / 16) * 16;
+      const roundedB = Math.round(b / 16) * 16;
+      
+      const rClamp = Math.min(255, Math.max(0, roundedR));
+      const gClamp = Math.min(255, Math.max(0, roundedG));
+      const bClamp = Math.min(255, Math.max(0, roundedB));
+      
+      const hex = rgbToHex(rClamp, gClamp, bClamp);
+      
+      // Weight vibrant colors higher than neutral gray background levels
+      const weight = isGray ? 1 : 3;
+      colorCounts[hex] = (colorCounts[hex] || 0) + weight;
+    }
+    
+    // Sort by frequency
+    const sortedColors = Object.keys(colorCounts).sort((a, b) => colorCounts[b] - colorCounts[a]);
+    
+    // Select unique colors that are visually distinct (HSL Hue difference > 35 degrees)
+    const distinctColors: string[] = [];
+    
+    for (const hex of sortedColors) {
+      if (distinctColors.length >= count) break;
+      
+      const hsl = hexToHsl(hex);
+      
+      const isTooSimilar = distinctColors.some(selectedHex => {
+        const selectedHsl = hexToHsl(selectedHex);
+        const hueDiff = Math.min(
+          Math.abs(hsl.h - selectedHsl.h),
+          360 - Math.abs(hsl.h - selectedHsl.h)
+        );
+        
+        return hueDiff < 35 && Math.abs(hsl.s - selectedHsl.s) < 25 && Math.abs(hsl.l - selectedHsl.l) < 25;
+      });
+      
+      if (!isTooSimilar) {
+        distinctColors.push(hex);
+      }
+    }
+    
+    // Backfill with high frequency colors if count not satisfied
+    let idx = 0;
+    while (distinctColors.length < count && idx < sortedColors.length) {
+      const hex = sortedColors[idx++];
+      if (!distinctColors.includes(hex)) {
+        distinctColors.push(hex);
+      }
+    }
+    
+    // Fallback if extraction yielded nothing
+    if (distinctColors.length === 0) {
+      return ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
+    }
+    
+    return distinctColors.slice(0, count);
   }
